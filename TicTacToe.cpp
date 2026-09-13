@@ -127,6 +127,31 @@ public:
     }
 
     void start() {
+        char replay;
+        do {
+            showMenu();
+            board.display();
+            while (true) {
+				if (AIPlayer* aiPlayer = dynamic_cast<AIPlayer*>(currentPlayer)) {
+					handleAIMove(aiPlayer);
+				}
+				else {
+					handleHumanMove(currentPlayer);
+				}
+                board.display();
+                if (checkGameEnd()) {
+                    break;
+                }
+                switchPlayer();
+            }
+            displayResult();
+            cout<<"Replay confirmation (y/n): ";
+            cin >> replay;
+            if (replay == 'y' || replay == 'Y') {
+                reset();
+            }
+        }
+		while (replay == 'y' || replay == 'Y');
     }
 
     void showMenu() {
@@ -139,22 +164,63 @@ public:
     }
 
     void switchPlayer() {
+        if(currentplayer==player1)
+            currentPlayer=player2;
+        else
+            currentPlayer=player1;
     }
 
     void handleHumanMove(Player* player) {
+        int row, col;
+        player->getMove(row, col);
+        row--;
+        col--;
+        while (!board.makeMove(row, col, player->getSymbol())) {
+            cout << "Invalid move. Try again." << endl;
+            player->getMove(row, col);
+            row--;
+            col--;
+        }
     }
 
     void handleAIMove(AIPlayer* aiPlayer) {
+        int row, col;
+        aiPlayer->getMove(row, col);
+        board.makeMove(row, col, aiPlayer->getSymbol());
     }
 
     bool checkGameEnd() {
+		if (board.checkWin(Player1->getSymbol())) {
+			cout << currentPlayer->getName() << " wins!" << endl;
+			return true;
+		}
+        if(board.checkWin(Player2->getSymbol()))
+            {
+                cout << currentPlayer->getName() << " wins!" << endl;
+                return true;
+                }
+		else if (board.isFull()) {
+			cout << "It's a draw!" << endl;
+			return true;
+		}
         return false;
     }
 
     void displayResult() const {
+		if (board.checkWin(player1->getSymbol())) {
+			cout << player1->getName() << " wins!" << endl;
+		}
+		else if (board.checkWin(player2->getSymbol())) {
+			cout << player2->getName() << " wins!" << endl;
+		}
+		else if (board.isFull()) {
+			cout << "It's a draw!" << endl;
+		}
     }
 
     void reset() {
+        board.reset();
+        currentPlayer = player1;
     }
 };
 
