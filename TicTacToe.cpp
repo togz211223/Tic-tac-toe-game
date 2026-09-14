@@ -82,6 +82,8 @@ public:
     }
 
     void getMove(int& row, int& col) override {
+        cout << name << " (" << symbol << "), enter your move (row and column): ";
+        cin >> row >> col;
     }
 };
 
@@ -90,7 +92,7 @@ private:
     Difficulty difficulty;
 
 public:
-    AIPlayer(const string& name, char symbol, Difficulty difficulty) 
+    AIPlayer(const string& name, char symbol, Difficulty difficulty)
         : Player(name, symbol), difficulty(difficulty) {
     }
 
@@ -227,6 +229,6 @@ public:
 int main() {
     Game game;
     game.start();
-    
+
     return 0;
 }
