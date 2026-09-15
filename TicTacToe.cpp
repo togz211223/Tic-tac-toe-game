@@ -21,15 +21,27 @@ public:
     }
 
     void display() const {
-        cout << "\n  1   2   3\n";
+        cout << "\n  ";
+        for (int i = 0; i < size; i++) {
+            cout << " " << i + 1 << "  ";
+        }
+        cout << "\n";
+
         for (int i = 0; i < size; i++) {
             cout << i + 1 << " ";
             for (int j = 0; j < size; j++) {
-                cout << grid[i][j];
-                if (j < size - 1) cout << " | ";
+                cout << " " << grid[i][j] << " ";
+                if (j < size - 1) cout << "|";
             }
             cout << "\n";
-            if (i < size - 1) cout << " ---+---+---\n";
+
+            if (i < size - 1) {
+                cout << "  ";
+                for (int j = 0; j < size - 1; j++) {
+                    cout << "---+";
+                }
+                cout << "---\n";
+            }
         }
         cout << "\n";
     }
