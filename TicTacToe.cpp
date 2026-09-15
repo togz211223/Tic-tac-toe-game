@@ -19,8 +19,7 @@ private:
     const int size;
 
 public:
-    Board(int size = 3) : size(size) {
-        grid = vector<vector<char>>(size, vector<char>(size, ' '));
+    Board(int size = 3) : size(size), grid(size, vector<char>(size, ' ')) {
     }
 
     void display() const {
@@ -66,7 +65,7 @@ public:
 
     bool isValidMove(int row, int col) const {
 		if (row < 0 || col < 0 || row >= size || col >= size) return false;
-		if (grid[row][col] != ' ') return false; 
+		if (grid[row][col] != ' ') return false;
 		return true;
     }
 
@@ -97,7 +96,7 @@ public:
     }
 
     bool isFull() const {
-        for (vector<char> row: grid) {
+        for (const vector<char>& row: grid) {
             for (char symbol: row) {
                 if (symbol == ' ') return false;
             }
@@ -107,7 +106,10 @@ public:
     }
 
     char getCell(int row, int col) const {
-        return grid[row][col];
+        if (row >= 0 && row < size && col >= 0 && col < size) {
+            return grid[row][col];
+        }
+        return ' ';
     }
 
     void reset() {
@@ -159,7 +161,8 @@ public:
         while (true) {
             cout << name << " (" << symbol << "), enter your move (row and column 1-3): ";
             if (cin >> row >> col) {
-                break; 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
             } else {
                 cout << "Invalid input. Please enter numbers only!" << endl;
                 cin.clear();
@@ -309,7 +312,7 @@ public:
                 break;
             }
 
-            do {
+            while (true) {
                 board.display();
                 if (AIPlayer* aiPlayer = dynamic_cast<AIPlayer*>(currentPlayer)) {
                     handleAIMove(aiPlayer);
@@ -317,15 +320,14 @@ public:
                 else {
                     handleHumanMove(currentPlayer);
                 }
-                
-                board.display();
+
                 if (checkGameEnd()) {
+                    board.display();
+                    displayResult();
                     break;
                 }
                 switchPlayer();
-            } while (true);
-
-            displayResult();
+            }
 
             cout << "\nPlay again? (y/n): ";
             char again = 'n';
@@ -348,7 +350,7 @@ public:
         cout << "3. Player vs Computer (Hard)\n";
         cout << "4. Exit\n\n";
         cout << "Select game mode: ";
-     
+
         int choice = 0;
         while (!(cin >> choice) || choice < 1 || choice > 4) {
             cout << "Invalid choice, please enter a number between 1 and 4: ";
@@ -356,7 +358,7 @@ public:
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-     
+
         switch (choice) {
             case 1:
                 setupPvP();
@@ -380,35 +382,35 @@ public:
     void setupPvP() {
         delete player1;
         delete player2;
-     
+
         string name1, name2;
-     
+
         cout << "\nPlayer 1 name: ";
         getline(cin, name1);
         player1 = new HumanPlayer(name1, 'X');
-     
+
         cout << "Player 2 name: ";
         getline(cin, name2);
         player2 = new HumanPlayer(name2, 'O');
-     
+
         currentPlayer = player1;
-     
+
         cout << "\n" << player1->getName() << " (X) vs " << player2->getName() << " (O)\n";
     }
 
     void setupPvC(Difficulty difficulty) {
         delete player1;
         delete player2;
-     
+
         string name;
         cout << "\nYour name: ";
         getline(cin, name);
-     
+
         player1 = new HumanPlayer(name, 'X');
         player2 = new AIPlayer("Computer", 'O', difficulty);
-     
+
         currentPlayer = player1;
-     
+
         string diffLabel = (difficulty == Difficulty::EASY) ? "Easy" : "Hard";
         cout << "\n" << player1->getName() << " (X) vs Computer (O) [" << diffLabel << "]\n";
     }
@@ -422,15 +424,14 @@ public:
 
     void handleHumanMove(Player* player) {
         int row, col;
-        player->getMove(row, col);
-        row--;
-        col--;
-        
-        while (!board.makeMove(row, col, player->getSymbol())) {
-            cout << "Invalid move. Cell occupied or out of bounds. Try again." << endl;
+        while (true) {
             player->getMove(row, col);
             row--;
             col--;
+            if (board.makeMove(row, col, player->getSymbol())) {
+                break;
+            }
+            cout << "Invalid move. Cell occupied or out of bounds. Try again." << endl;
         }
     }
 
