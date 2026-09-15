@@ -26,9 +26,9 @@ public:
     }
 
     bool isValidMove(int row, int col) const {
-        if (row < 0 || col < 0 || row >= size || col >= size) return false;
-
-        return true;
+		if (row < 0 || col < 0 || row >= size || col >= size) return false;
+		if (grid[row][col] != ' ') return false; 
+		return true;
     }
 
     bool checkWin(char symbol) const {
