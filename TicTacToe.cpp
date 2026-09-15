@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <limits> // Needed for numeric_limits to clear cin
+#include <limits>
 
 using namespace std;
 
@@ -17,6 +17,7 @@ private:
 
 public:
     Board(int size = 3) : size(size) {
+        grid = vector<vector<char>>(size, vector<char>(size, ' '));
     }
 
     void display() const {
@@ -107,7 +108,6 @@ public:
     }
 };
 
-// [TIC-10] FIXED: Concrete HumanPlayer with Robust Input Validation
 class HumanPlayer : public Player {
 public:
     HumanPlayer(const string& name, char symbol) : Player(name, symbol) {
@@ -117,9 +117,8 @@ public:
         while (true) {
             cout << name << " (" << symbol << "), enter your move (row and column 1-3): ";
             if (cin >> row >> col) {
-                break; // Valid integers entered
+                break; 
             } else {
-                // Clear the error state and ignore bad string inputs to prevent crashes
                 cout << "Invalid input. Please enter numbers only!" << endl;
                 cin.clear();
                 cin.ignore(10000, '\n');
@@ -167,13 +166,12 @@ public:
     }
 
     ~Game() {
-        // Remember to eventually delete player1 and player2 here!
     }
 
     void start() {
         char replay;
         
-        showMenu(); // Moved OUTSIDE the loop to prevent memory leaks
+        showMenu(); 
 
         do {
             board.display();
@@ -217,7 +215,6 @@ public:
     }
 
     void switchPlayer() {
-        // FIXED: currentplayer typo changed to currentPlayer
         if (currentPlayer == player1)
             currentPlayer = player2;
         else
@@ -245,8 +242,6 @@ public:
     }
 
     bool checkGameEnd() {
-        // FIXED: Player1/Player2 typos corrected to player1/player2. 
-        // FIXED: Print statements removed to prevent double-printing.
         if (board.checkWin(player1->getSymbol())) {
             return true;
         }
