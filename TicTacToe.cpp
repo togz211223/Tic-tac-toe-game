@@ -47,6 +47,10 @@ public:
     }
 
     bool makeMove(int row, int col, char symbol) {
+        if (isValidMove(row, col)) {
+            grid[row][col] = symbol;
+            return true;
+        }
         return false;
     }
 
@@ -97,6 +101,11 @@ public:
     }
 
     void reset() {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                grid[i][j] = ' ';
+            }
+        }
     }
 
     int getSize() const {
