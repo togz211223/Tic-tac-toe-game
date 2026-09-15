@@ -27,15 +27,45 @@ public:
     }
 
     bool isValidMove(int row, int col) const {
-        return false;
+		if (row < 0 || col < 0 || row >= size || col >= size) return false;
+		if (grid[row][col] != ' ') return false; 
+		return true;
     }
 
     bool checkWin(char symbol) const {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (grid[i][j] != symbol) break;
+                if (j+1 == size) return true;
+            }
+
+            for (int j = 0; j < size; j++) {
+                if (grid[j][i] != symbol) break;
+                if (j+1 == size) return true;
+            }
+        }
+
+        for (int j = 0; j < size; j++) {
+            if (grid[j][size - j - 1] != symbol) break;
+            if (j+1 == size) return true;
+        }
+
+        for (int j = 0; j < size; j++) {
+            if (grid[j][j] != symbol) break;
+            if (j+1 == size) return true;
+        }
+
         return false;
     }
 
     bool isFull() const {
-        return false;
+        for (vector<char> row: grid) {
+            for (char symbol: row) {
+                if (symbol == ' ') return false;
+            }
+        }
+
+        return true;
     }
 
     char getCell(int row, int col) const {
