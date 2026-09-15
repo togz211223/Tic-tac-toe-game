@@ -4,6 +4,8 @@
 #include <limits>
 #include <cstdlib>
 #include <utility>
+#include <algorithm>
+
 using namespace std;
 
 enum Difficulty {
@@ -48,6 +50,13 @@ public:
     }
 
     bool makeMove(int row, int col, char symbol) {
+        if (symbol == ' ') {
+            if (row >= 0 && row < size && col >= 0 && col < size) {
+                grid[row][col] = ' ';
+                return true;
+            }
+            return false;
+        }
         if (isValidMove(row, col)) {
             grid[row][col] = symbol;
             return true;
@@ -150,7 +159,7 @@ public:
         while (true) {
             cout << name << " (" << symbol << "), enter your move (row and column 1-3): ";
             if (cin >> row >> col) {
-                break;
+                break; 
             } else {
                 cout << "Invalid input. Please enter numbers only!" << endl;
                 cin.clear();
@@ -164,6 +173,43 @@ class AIPlayer : public Player {
 private:
     Difficulty difficulty;
 
+    int minimax(Board& board, int depth, bool isMaximizing) const {
+        int score = evaluateBoard(board);
+
+        if (score == 10) return score - depth;
+        if (score == -10) return score + depth;
+        if (board.isFull()) return 0;
+
+        char opponentSymbol = (symbol == 'X') ? 'O' : 'X';
+        int size = board.getSize();
+
+        if (isMaximizing) {
+            int best = -1000;
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    if (board.isValidMove(i, j)) {
+                        board.makeMove(i, j, symbol);
+                        best = max(best, minimax(board, depth + 1, false));
+                        board.makeMove(i, j, ' ');
+                    }
+                }
+            }
+            return best;
+        } else {
+            int best = 1000;
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    if (board.isValidMove(i, j)) {
+                        board.makeMove(i, j, opponentSymbol);
+                        best = min(best, minimax(board, depth + 1, true));
+                        board.makeMove(i, j, ' ');
+                    }
+                }
+            }
+            return best;
+        }
+    }
+
 public:
     AIPlayer(const string& name, char symbol, Difficulty difficulty)
         : Player(name, symbol), difficulty(difficulty) {
@@ -175,8 +221,7 @@ public:
     void getMove(Board& board, int& row, int& col) {
         if (difficulty == EASY) {
             getRandomMove(board, row, col);
-        }
-        else {
+        } else {
             getBestMove(board, row, col);
         }
     }
@@ -187,7 +232,6 @@ public:
 
     void getRandomMove(const Board& board, int& row, int& col) const {
         vector<pair<int, int>> validMoves;
-
         int size = board.getSize();
 
         for (int i = 0; i < size; i++) {
@@ -206,9 +250,36 @@ public:
     }
 
     void getBestMove(Board& board, int& row, int& col) const {
+        int bestVal = -1000;
+        row = -1;
+        col = -1;
+        int size = board.getSize();
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board.isValidMove(i, j)) {
+                    board.makeMove(i, j, symbol);
+                    int moveVal = minimax(board, 0, false);
+                    board.makeMove(i, j, ' ');
+
+                    if (moveVal > bestVal) {
+                        row = i;
+                        col = j;
+                        bestVal = moveVal;
+                    }
+                }
+            }
+        }
     }
 
     int evaluateBoard(const Board& board) const {
+        char opponentSymbol = (symbol == 'X') ? 'O' : 'X';
+        if (board.checkWin(symbol)) {
+            return 10;
+        }
+        if (board.checkWin(opponentSymbol)) {
+            return -10;
+        }
         return 0;
     }
 };
