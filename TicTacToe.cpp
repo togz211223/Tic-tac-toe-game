@@ -160,23 +160,27 @@ private:
     Player* player1;
     Player* player2;
     Player* currentPlayer;
+    bool playing;
 
 public:
-    Game() : player1(nullptr), player2(nullptr), currentPlayer(nullptr) {
+    Game() : player1(nullptr), player2(nullptr), currentPlayer(nullptr), playing(false) {
     }
 
     ~Game() {
+        delete player1;
+        delete player2;
     }
 
     void start() {
-        char replay;
-        
-        showMenu(); 
+        playing = true;
+        while (playing) {
+            showMenu();
+            if (player1 == nullptr) {
+                break;
+            }
 
-        do {
-            board.display();
-            
-            while (true) {
+            do {
+                board.display();
                 if (AIPlayer* aiPlayer = dynamic_cast<AIPlayer*>(currentPlayer)) {
                     handleAIMove(aiPlayer);
                 }
@@ -185,33 +189,98 @@ public:
                 }
                 
                 board.display();
-                
                 if (checkGameEnd()) {
                     break;
                 }
-                
                 switchPlayer();
-            }
-            
+            } while (true);
+
             displayResult();
-            
-            cout << "Replay confirmation (y/n): ";
-            cin >> replay;
-            
-            if (replay == 'y' || replay == 'Y') {
+
+            cout << "\nPlay again? (y/n): ";
+            char again = 'n';
+            cin >> again;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if (again == 'y' || again == 'Y') {
                 reset();
+            } else {
+                playing = false;
             }
-            
-        } while (replay == 'y' || replay == 'Y');
+        }
     }
 
     void showMenu() {
+        cout << "TIC-TAC-TOE GAME\n";
+        cout << "================\n";
+        cout << "1. Player vs Player\n";
+        cout << "2. Player vs Computer (Easy)\n";
+        cout << "3. Player vs Computer (Hard)\n";
+        cout << "4. Exit\n\n";
+        cout << "Select game mode: ";
+     
+        int choice = 0;
+        while (!(cin >> choice) || choice < 1 || choice > 4) {
+            cout << "Invalid choice, please enter a number between 1 and 4: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+     
+        switch (choice) {
+            case 1:
+                setupPvP();
+                break;
+            case 2:
+                setupPvC(Difficulty::EASY);
+                break;
+            case 3:
+                setupPvC(Difficulty::HARD);
+                break;
+            case 4:
+                delete player1;
+                delete player2;
+                player1 = nullptr;
+                player2 = nullptr;
+                cout << "Goodbye!\n";
+                break;
+        }
     }
 
     void setupPvP() {
+        delete player1;
+        delete player2;
+     
+        string name1, name2;
+     
+        cout << "\nPlayer 1 name: ";
+        getline(cin, name1);
+        player1 = new HumanPlayer(name1, 'X');
+     
+        cout << "Player 2 name: ";
+        getline(cin, name2);
+        player2 = new HumanPlayer(name2, 'O');
+     
+        currentPlayer = player1;
+     
+        cout << "\n" << player1->getName() << " (X) vs " << player2->getName() << " (O)\n";
     }
 
     void setupPvC(Difficulty difficulty) {
+        delete player1;
+        delete player2;
+     
+        string name;
+        cout << "\nYour name: ";
+        getline(cin, name);
+     
+        player1 = new HumanPlayer(name, 'X');
+        player2 = new AIPlayer("Computer", 'O', difficulty);
+     
+        currentPlayer = player1;
+     
+        string diffLabel = (difficulty == Difficulty::EASY) ? "Easy" : "Hard";
+        cout << "\n" << player1->getName() << " (X) vs Computer (O) [" << diffLabel << "]\n";
     }
 
     void switchPlayer() {
