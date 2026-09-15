@@ -21,6 +21,17 @@ public:
     }
 
     void display() const {
+        cout << "\n  1   2   3\n";
+        for (int i = 0; i < size; i++) {
+            cout << i + 1 << " ";
+            for (int j = 0; j < size; j++) {
+                cout << grid[i][j];
+                if (j < size - 1) cout << " | ";
+            }
+            cout << "\n";
+            if (i < size - 1) cout << " ---+---+---\n";
+        }
+        cout << "\n";
     }
 
     bool makeMove(int row, int col, char symbol) {
@@ -70,7 +81,7 @@ public:
     }
 
     char getCell(int row, int col) const {
-        return ' ';
+        return grid[row][col];
     }
 
     void reset() {
@@ -121,7 +132,7 @@ public:
             } else {
                 cout << "Invalid input. Please enter numbers only!" << endl;
                 cin.clear();
-                cin.ignore(10000, '\n');
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
         }
     }
