@@ -2,7 +2,8 @@
 #include <vector>
 #include <string>
 #include <limits>
-
+#include <cstdlib>
+#include <utility>
 using namespace std;
 
 enum Difficulty {
@@ -149,7 +150,7 @@ public:
         while (true) {
             cout << name << " (" << symbol << "), enter your move (row and column 1-3): ";
             if (cin >> row >> col) {
-                break; 
+                break;
             } else {
                 cout << "Invalid input. Please enter numbers only!" << endl;
                 cin.clear();
@@ -171,11 +172,37 @@ public:
     void getMove(int& row, int& col) override {
     }
 
+    void getMove(Board& board, int& row, int& col) {
+        if (difficulty == EASY) {
+            getRandomMove(board, row, col);
+        }
+        else {
+            getBestMove(board, row, col);
+        }
+    }
+
     void setDifficulty(Difficulty newDifficulty) {
         difficulty = newDifficulty;
     }
 
     void getRandomMove(const Board& board, int& row, int& col) const {
+        vector<pair<int, int>> validMoves;
+
+        int size = board.getSize();
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board.isValidMove(i, j)) {
+                    validMoves.push_back({i, j});
+                }
+            }
+        }
+
+        if (!validMoves.empty()) {
+            int index = rand() % validMoves.size();
+            row = validMoves[index].first;
+            col = validMoves[index].second;
+        }
     }
 
     void getBestMove(Board& board, int& row, int& col) const {
@@ -338,7 +365,7 @@ public:
 
     void handleAIMove(AIPlayer* aiPlayer) {
         int row, col;
-        aiPlayer->getMove(row, col);
+        aiPlayer->getMove(board, row, col);
         board.makeMove(row, col, aiPlayer->getSymbol());
     }
 
