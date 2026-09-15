@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <limits> // Needed for numeric_limits to clear cin
 
 using namespace std;
 
@@ -76,12 +77,24 @@ public:
     }
 };
 
+// [TIC-10] FIXED: Concrete HumanPlayer with Robust Input Validation
 class HumanPlayer : public Player {
 public:
     HumanPlayer(const string& name, char symbol) : Player(name, symbol) {
     }
 
     void getMove(int& row, int& col) override {
+        while (true) {
+            cout << name << " (" << symbol << "), enter your move (row and column 1-3): ";
+            if (cin >> row >> col) {
+                break; // Valid integers entered
+            } else {
+                // Clear the error state and ignore bad string inputs to prevent crashes
+                cout << "Invalid input. Please enter numbers only!" << endl;
+                cin.clear();
+                cin.ignore(10000, '\n');
+            }
+        }
     }
 };
 
@@ -90,7 +103,7 @@ private:
     Difficulty difficulty;
 
 public:
-    AIPlayer(const string& name, char symbol, Difficulty difficulty) 
+    AIPlayer(const string& name, char symbol, Difficulty difficulty)
         : Player(name, symbol), difficulty(difficulty) {
     }
 
@@ -124,34 +137,44 @@ public:
     }
 
     ~Game() {
+        // Remember to eventually delete player1 and player2 here!
     }
 
     void start() {
         char replay;
+        
+        showMenu(); // Moved OUTSIDE the loop to prevent memory leaks
+
         do {
-            showMenu();
             board.display();
+            
             while (true) {
-				if (AIPlayer* aiPlayer = dynamic_cast<AIPlayer*>(currentPlayer)) {
-					handleAIMove(aiPlayer);
-				}
-				else {
-					handleHumanMove(currentPlayer);
-				}
+                if (AIPlayer* aiPlayer = dynamic_cast<AIPlayer*>(currentPlayer)) {
+                    handleAIMove(aiPlayer);
+                }
+                else {
+                    handleHumanMove(currentPlayer);
+                }
+                
                 board.display();
+                
                 if (checkGameEnd()) {
                     break;
                 }
+                
                 switchPlayer();
             }
+            
             displayResult();
-            cout<<"Replay confirmation (y/n): ";
+            
+            cout << "Replay confirmation (y/n): ";
             cin >> replay;
+            
             if (replay == 'y' || replay == 'Y') {
                 reset();
             }
-        }
-		while (replay == 'y' || replay == 'Y');
+            
+        } while (replay == 'y' || replay == 'Y');
     }
 
     void showMenu() {
@@ -164,10 +187,11 @@ public:
     }
 
     void switchPlayer() {
-        if(currentplayer==player1)
-            currentPlayer=player2;
+        // FIXED: currentplayer typo changed to currentPlayer
+        if (currentPlayer == player1)
+            currentPlayer = player2;
         else
-            currentPlayer=player1;
+            currentPlayer = player1;
     }
 
     void handleHumanMove(Player* player) {
@@ -175,8 +199,9 @@ public:
         player->getMove(row, col);
         row--;
         col--;
+        
         while (!board.makeMove(row, col, player->getSymbol())) {
-            cout << "Invalid move. Try again." << endl;
+            cout << "Invalid move. Cell occupied or out of bounds. Try again." << endl;
             player->getMove(row, col);
             row--;
             col--;
@@ -190,32 +215,30 @@ public:
     }
 
     bool checkGameEnd() {
-		if (board.checkWin(Player1->getSymbol())) {
-			cout << currentPlayer->getName() << " wins!" << endl;
-			return true;
-		}
-        if(board.checkWin(Player2->getSymbol()))
-            {
-                cout << currentPlayer->getName() << " wins!" << endl;
-                return true;
-                }
-		else if (board.isFull()) {
-			cout << "It's a draw!" << endl;
-			return true;
-		}
+        // FIXED: Player1/Player2 typos corrected to player1/player2. 
+        // FIXED: Print statements removed to prevent double-printing.
+        if (board.checkWin(player1->getSymbol())) {
+            return true;
+        }
+        if (board.checkWin(player2->getSymbol())) {
+            return true;
+        }
+        if (board.isFull()) {
+            return true;
+        }
         return false;
     }
 
     void displayResult() const {
-		if (board.checkWin(player1->getSymbol())) {
-			cout << player1->getName() << " wins!" << endl;
-		}
-		else if (board.checkWin(player2->getSymbol())) {
-			cout << player2->getName() << " wins!" << endl;
-		}
-		else if (board.isFull()) {
-			cout << "It's a draw!" << endl;
-		}
+        if (board.checkWin(player1->getSymbol())) {
+            cout << player1->getName() << " wins!" << endl;
+        }
+        else if (board.checkWin(player2->getSymbol())) {
+            cout << player2->getName() << " wins!" << endl;
+        }
+        else if (board.isFull()) {
+            cout << "It's a draw!" << endl;
+        }
     }
 
     void reset() {
@@ -227,6 +250,6 @@ public:
 int main() {
     Game game;
     game.start();
-    
+
     return 0;
 }
